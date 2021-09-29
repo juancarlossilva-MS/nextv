@@ -6,12 +6,10 @@ import { useEffect, useState } from 'react';
 
 export default function Home() {
   
-  const doc = fire.firestore().collection('listvideos');
-  var request;
   
 
   const getBase64FromUrl = async (url) => {
-  //  console.log(url)
+    console.log(url)
 
     const data = await fetch(url,{method:"get", "access-control-allow-origin" : "*",});
     const blob = await data.blob();
@@ -24,38 +22,79 @@ export default function Home() {
       // setImgSel(prev=>[...prev,base64data])
           setUrl(prev=>[...prev,base64data])
            resolve(base64data);
-           console.log(request)
-           request.onupgradeneeded = function (event) {
-                console.log("entroiu")
-                console.log(event)
-                var db = event.target.result;
-          
-                // Criando outro objeto chamado "names" com o autoIncrement setado.
-                var objStore = db.createObjectStore("names", { autoIncrement : true });
-          
-                
-                    objStore.add({img:base64data});
-          
-            }
+
+          //Abrindo a transação com a object store "contato"
+            var transaction = db.transaction('name', "readwrite");
+
+            // Quando a transação é executada com sucesso
+            transaction.oncomplete = function(event) {
+                console.log('Transação finalizada com sucesso.');
+            };
+
+            // Quando ocorre algum erro na transação
+            transaction.onerror = function(event) {
+                console.log('Transação finalizada com erro. Erro: ' + event.target.error);
+            };
+
+            //Recuperando a object store para incluir os registros
+            var store = transaction.objectStore('name');
+
+                var request = store.add(base64data,url);
+
+                //quando ocorrer um erro ao adicionar o registro
+                request.onerror = function (event) {
+                    console.log('Ocorreu um erro ao salvar o contato.');
+                }
+
+                //quando o registro for incluido com sucesso
+                request.onsuccess = function (event) {
+                    console.log('Contato salvo com sucesso.');
+                }
+            
+
+
+
+           
       }
     });
   }
 
 const [url,setUrl] = useState([]);
-
+var db;
 useEffect(()=>{
     if(typeof window !== undefined){
       console.log("entrou aqui")
       console.log("indexou")
-      request = window.indexedDB.open("DBteste");
+      var request = window.indexedDB.open("DBteste",2);
+      request.onsuccess = function (event) { 
+            db = event.target.result;
 
+       }
+    
+    request.onerror = function (event) { 
+        //erro ao criar/abrir o banco de dados
+    }
+    
+    request.onupgradeneeded = function(event) {
+           console.log("here")
+            var  db = event.target.result;
+        
+            var store3 = db.createObjectStore("name", { autoIncrement: true });
+
+        }
     }
 },[])
 
 useEffect(()=>{
+  const doc = fire.firestore().collection('listvideos');
 
 
- doc.onSnapshot(docSnapshot => {
+ doc.onSnapshot(
+   
+  (docSnapshot) => {
+
+    console.log("snapshot")
+  
     setUrl([]);
     docSnapshot.forEach((async x=>{
         console.log(x.id)
@@ -67,19 +106,54 @@ useEffect(()=>{
     }))
 
 
+
   }, err => {
     console.log(`Encountered error: ${err}`);
-  });
+  },
+querySnapshot => {
 
+     // console.log("snapshot")
+    // console.log(querySnapshot)
+    //  console.log(querySnapshot.docChanges())
+      //console.log(querySnapshot.docChanges())
+      querySnapshot.docChanges().forEach(async(change) => {
+      //  console.log(change)
+        if (change.type === "added") {
+           // console.log("New city: ", change.doc);
+          // console.log(x.id)
+          //  const url = "http://btgnews.com.br/videos/"+change.doc.id+"?to=crop&r=256";
+           // const src = await getBase64FromUrl(url);
+        }
+        if (change.type === "modified") {
+        //    console.log("Modified city: ", change.doc.data());
+        }
+        if (change.type === "removed") {
+         //   console.log("Removed city: ", change.doc.data());
+        }
+    });
+
+}
+  
+  
+  );
 
 
 },[])
 
 function Imagens(){
   return( url.map(u => {
-      return(<img src={u}/>)
-    })
-    )
+        if(u[5] == "v"){
+          return(
+                <video loop="true" autoplay="autoplay" controls muted>
+                  <source src={u} type="video/mp4"/>
+                </video>
+            )
+          }else{
+
+            return(<img src={u}/>)
+          }
+      })
+  )
 }
 
   return (
