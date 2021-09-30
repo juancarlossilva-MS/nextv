@@ -20,7 +20,7 @@ export default function Home() {
       reader.onloadend = () => {
         const base64data = reader.result;   
       // setImgSel(prev=>[...prev,base64data])
-          setUrl(prev=>[...prev,base64data])
+          setVideos(prev=>[...prev,base64data])
            resolve(base64data);
 
           //Abrindo a transação com a object store "contato"
@@ -59,89 +59,151 @@ export default function Home() {
     });
   }
 
-const [url,setUrl] = useState([]);
+
+
+
+const [videos,setVideos] = useState([]);
+
 var db;
+
+
+
 useEffect(()=>{
     if(typeof window !== undefined){
       console.log("entrou aqui")
       console.log("indexou")
       var request = window.indexedDB.open("DBteste",2);
-      request.onsuccess = function (event) { 
+      request.onsuccess = async function (event) { 
             db = event.target.result;
+            
+              var transaction = db.transaction('name', "readwrite");
+            
+            
+              //Recuperando a object store para incluir os registros
+              var store = await transaction.objectStore('name').getAll();
+
+              store.onsuccess = function(e){
+                console.log(store)
+                console.log(store.result)
+                setVideos(store.result)
+              }
+            
+          
 
        }
-    
-    request.onerror = function (event) { 
-        //erro ao criar/abrir o banco de dados
-    }
-    
-    request.onupgradeneeded = function(event) {
-           console.log("here")
-            var  db = event.target.result;
-        
-            var store3 = db.createObjectStore("name", { autoIncrement: true });
 
+      
+
+       window.addEventListener('offline', () => {
+  
+          console.log('Became offline');
+        
+          var transaction = db.transaction('name', "readwrite");
+        
+        
+          //Recuperando a object store para incluir os registros
+          var store = transaction.objectStore('name').getAll();
+        
+          console.log(store.result)
+        
+          
+        });
+    
+        request.onerror = function (event) { 
+            //erro ao criar/abrir o banco de dados
         }
+        
+        request.onupgradeneeded = function(event) {
+              console.log("here")
+                var  db = event.target.result;        
+                var store3 = db.createObjectStore("name", { autoIncrement: true });
+
+            }
     }
 },[])
 
+
+var upLoad = false;
+
 useEffect(()=>{
+  if(window.navigator.onLine){
   const doc = fire.firestore().collection('listvideos');
 
 
  doc.onSnapshot(
+
+  
    
   (docSnapshot) => {
 
     console.log("snapshot")
   
-    setUrl([]);
+
+
+    console.log("init clear");
+    console.log(upLoad);
+
+    if(db !== undefined && upLoad){
+          setVideos([]);
+          console.log('db está definido')
+          var transaction = db.transaction('name', "readwrite");
+          var store = transaction.objectStore('name').clear();
+    }
+
+     
+
+    console.log("end clear");
+    //pegar o array do docChanges e pra cada um gerar a KEY == URL+x.id  e excluir do banco o valor informado pelo firestore
+    console.log(docSnapshot.docChanges);
+
+
+
     docSnapshot.forEach((async x=>{
         console.log(x.id)
         const url = "http://btgnews.com.br/videos/"+x.id+"?to=crop&r=256";
-        const src = await getBase64FromUrl(url);
-       // console.log(url)
-      //  console.log(src)
-//setUrl(src);
+
+        var transaction = db.transaction('name', "readwrite");
+      
+      
+        //Recuperando a object store para incluir os registros
+        var store = transaction.objectStore('name').get(url);
+
+        store.onsuccess = async function(){
+                  if(store.result == undefined){
+                    const src = await getBase64FromUrl(url);
+                  }else{
+                    console.log("xxxx")
+                  }
+        }
+        store.onerror = function(){
+                  console.log("deu erro")
+        }
+      
+      
+        
+         console.log(videos)
+        //  console.log(src)
+        //setVideos(src);
     }))
+
+    upLoad = true;
 
 
 
   }, err => {
     console.log(`Encountered error: ${err}`);
   },
-querySnapshot => {
 
-     // console.log("snapshot")
-    // console.log(querySnapshot)
-    //  console.log(querySnapshot.docChanges())
-      //console.log(querySnapshot.docChanges())
-      querySnapshot.docChanges().forEach(async(change) => {
-      //  console.log(change)
-        if (change.type === "added") {
-           // console.log("New city: ", change.doc);
-          // console.log(x.id)
-          //  const url = "http://btgnews.com.br/videos/"+change.doc.id+"?to=crop&r=256";
-           // const src = await getBase64FromUrl(url);
-        }
-        if (change.type === "modified") {
-        //    console.log("Modified city: ", change.doc.data());
-        }
-        if (change.type === "removed") {
-         //   console.log("Removed city: ", change.doc.data());
-        }
-    });
-
-}
   
   
   );
+}
 
 
 },[])
 
 function Imagens(){
-  return( url.map(u => {
+  return( videos.map(u => {
         if(u[5] == "v"){
           return(
                 <video loop="true" autoplay="autoplay" controls muted>
@@ -164,60 +226,8 @@ function Imagens(){
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
         <Imagens/>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-     
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
-    </div>
+    
+     </div>
   )
 }
