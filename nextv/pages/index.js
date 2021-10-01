@@ -223,7 +223,7 @@ function Imagens(){
   return( videos.map(u => {
         if(u[5] == "v"){
           return(
-                <video loop="true" autoplay="autoplay" controls muted>
+                <video loop="true" autoPlay="autoplay" controls muted>
                   <source src={u} type="video/mp4"/>
                 </video>
             )
