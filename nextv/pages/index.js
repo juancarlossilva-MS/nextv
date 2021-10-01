@@ -252,13 +252,13 @@ function Imagens(props){
 
   if(u[5] == "v"){
     return(
-          <video loop="true" autoPlay="autoplay" controls muted>
+          <video key={u} loop="true" autoPlay="autoplay" controls muted>
             <source src={u} type="video/mp4"/>
           </video>
       )
     }else{
 
-      return(<img src={u}/>)
+      return(<img key={u} src={u}/>)
     }
       
   
@@ -273,7 +273,7 @@ function Imagens(props){
       </Head>
         
       {videos.map(u => {
-        return (<Imagens u={u} />)
+        return (<Imagens key={u} u={u} />)
         })
       }
      </div>
