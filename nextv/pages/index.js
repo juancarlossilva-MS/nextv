@@ -159,7 +159,7 @@ useEffect(()=>{
     docSnapshot.docChanges.forEach(async change=>{
       
       if(change.type == "removed"){
-        const url = "http://btgnews.com.br/videos/"+change.doc.id+"?to=crop&r=256";
+        const url = "https://btgnews.com.br/videos/"+change.doc.id+"?to=crop&r=256";
         console.log(url)
         var transaction = db.transaction('name', "readwrite");
         //Recuperando a object store para incluir os registros
@@ -179,7 +179,7 @@ useEffect(()=>{
 
     docSnapshot.forEach((async x=>{
         console.log(x.id)
-        const url = "http://btgnews.com.br/videos/"+x.id+"?to=crop&r=256";
+        const url = "https://btgnews.com.br/videos/"+x.id+"?to=crop&r=256";
 
         var transaction = db.transaction('name', "readwrite");
       
