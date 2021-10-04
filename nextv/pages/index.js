@@ -2,7 +2,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 import fire from "../config/fire-config"
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Home() {
   
@@ -63,6 +63,7 @@ export default function Home() {
 
 
 const [videos,setVideos] = useState([]);
+const [src,setSrc] = useState([]);
 
 var db;
 
@@ -86,6 +87,7 @@ useEffect(()=>{
                 console.log(store)
                 console.log(store.result)
                 setVideos(store.result)
+                setSrc(store.result[0]);
               }
             
           
@@ -235,33 +237,32 @@ function playArray(index,ele,array,listener){
   },false);
 }
 
-function Imagens(props){
-  var u = props.u;
+
+const[index,setIndex] = useState(0);
+const myCallback = () => {
+  console.log('Video has ended')
+  setIndex(index+1);
+  console.log(index)
+  console.log(videos.length)
+  if(index+1 == videos.length){
+    setIndex(0);
+    setSrc(videos[0]);
+
+  }else{
+    setSrc(videos[index+1]);
+  }
+  //ref.current.parentElement.play()
+}
+
+const ref = useRef();
 
 
-  // criar um listener direto no VIDEO, nao no componet para avisar quando acabar o video!!!
-  useEffect(()=>{
-      if(typeof window !== undefined){
-
-            window.addEventListener('ended',(event) => {
-              console.log("algo encerrou aqui!") 
-            })
-        }
-  })
-  
-
-  if(u[5] == "v"){
-    return(
-          <video key={u} loop="true" autoPlay="autoplay" controls muted>
-            <source src={u} type="video/mp4"/>
-          </video>
-      )
-    }else{
-
-      return(<img key={u} src={u}/>)
-    }
-      
-  
+const Video = () =>{
+  return(
+    <video onEnded={() => myCallback()} autoPlay="autoplay" controls muted>    
+        <source ref={ref} src={src} type="video/mp4"/>
+      </video>
+  )
 }
 
   return (
@@ -272,10 +273,7 @@ function Imagens(props){
         <link rel="icon" href="/favicon.ico" />
       </Head>
         
-      {videos.map(u => {
-        return (<Imagens key={u} u={u} />)
-        })
-      }
+      <Video/>
      </div>
   )
 }
