@@ -51,10 +51,6 @@ export default function Home() {
                     console.log('Contato salvo com sucesso.');
                 }
             
-
-
-
-           
       }
     });
   }
@@ -81,18 +77,31 @@ useEffect(()=>{
             
             
               //Recuperando a object store para incluir os registros
-              var store = await transaction.objectStore('name').getAll();
+           var store = await transaction.objectStore('name').getAll();
 
               store.onsuccess = function(e){
-                console.log(store)
-                console.log(store.result)
                 setVideos(store.result)
                 setSrc(store.result[0]);
               }
-            
-          
+               /*  let vidArray = []
+              var todos = await transaction.objectStore('name').openCursor();
+              todos.onsuccess = function(event){
+                  let cursor = event.target.result;
+                  if (cursor) {
+                      vidArray.push({[cursor.primaryKey]:cursor.value});
 
+                    cursor.continue();
+                  }else{
+                    setVideos(vidArray);
+                    
+                    setSrc(vidArray[0][Object.keys(vidArray[0])[0]]);
+                  
+                  }
+
+               }*/
+                
        }
+       
 
       
 
@@ -129,127 +138,117 @@ useEffect(()=>{
 
 var upLoad = false;
 
+
 useEffect(()=>{
   if(window.navigator.onLine){
   const doc = fire.firestore().collection('listvideos');
+  doc.onSnapshot((docSnapshot) => {
 
-
- doc.onSnapshot(
-
-  
-   
-  (docSnapshot) => {
-
-    console.log("snapshot")
-  
-
-
-    console.log("init clear");
-    console.log(upLoad);
-
-    /*if(db !== undefined && upLoad){
-          setVideos([]);
-          console.log('db está definido')
-          var transaction = db.transaction('name', "readwrite");
-          var store = transaction.objectStore('name').clear();
-    }*/
-
-     
-
-    console.log("end clear");
-    //pegar o array do docChanges e pra cada um gerar a KEY == URL+x.id  e excluir do banco o valor informado pelo firestore
-    docSnapshot.docChanges.forEach(async change=>{
-      
-      if(change.type == "removed"){
-        const url = "https://btgnews.com.br/videos/"+change.doc.id+"?to=crop&r=256";
-        console.log(url)
-        var transaction = db.transaction('name', "readwrite");
-        //Recuperando a object store para incluir os registros
-        var store = transaction.objectStore('name').delete(url);
-
-        store.onsuccess = function(event){
-          var todos = transaction.objectStore('name').getAll();
-            todos.onsuccess = function(event){
-                  setVideos(todos.result)
-            }
-        }
-      }
-
-    })
-
-
-
+     let arrayVideos = [];
     docSnapshot.forEach((async x=>{
         console.log(x.id)
         const url = "https://btgnews.com.br/videos/"+x.id+"?to=crop&r=256";
-
-        var transaction = db.transaction('name', "readwrite");
-      
-      
-        //Recuperando a object store para incluir os registros
-        var store = transaction.objectStore('name').get(url);
-
-        store.onsuccess = async function(){
-                  if(store.result == undefined){
-                    const src = await getBase64FromUrl(url);
-                  }else{
-                    console.log("xxxx")
-                  }
-        }
-        store.onerror = function(){
-                  console.log("deu erro")
-        }
-      
-      
-        
-         console.log(videos)
-        //  console.log(src)
-        //setVideos(src);
+        arrayVideos.push(url);
+       
     }))
 
     upLoad = true;
+    if(db){
+          console.log("db on!!!")
+          var transaction = db.transaction('name', "readwrite");
+
+          var todos = transaction.objectStore('name').openCursor();
+            todos.onsuccess = function(event){
+                let cursor = event.target.result;
+                if (cursor) {
+                    let key = cursor.primaryKey;
+                    if(arrayVideos.includes(key)){
+                      console.log('TEEEM')
+                    }else{
+                      console.log("NÃÃÃÃO!")
+                      console.log(key)
+                      var store = transaction.objectStore('name').delete(key);
+
+                      store.onsuccess = function(event){
+                          var v = transaction.objectStore('name').getAll();
+                          v.onsuccess = function(e){
+                            
+                            setVideos(v.result)
+                            setSrc(v.result[0]);
+                          }
+                      }
+
+                    }
+                    /*let value = cursor.value;
+                    console.log(key, value);*/
+                    cursor.continue();
+                }
+            }
+
+            arrayVideos.forEach(url=>{
+              var store = transaction.objectStore('name').get(url);
+
+                store.onsuccess = async function(){
+                          if(store.result == undefined){
+                            const src = await getBase64FromUrl(url);
+                          }else{
+                            console.log("xxxx")
+                          }
+                }
+                store.onerror = function(){
+                          console.log("deu erro")
+                }
+            })
+
+        }else{
+          console.log("DB OFF, TÁ VENDO!")
+        }
 
 
+      }, err => {
+        console.log(`Encountered error: ${err}`);
+      },
 
-  }, err => {
-    console.log(`Encountered error: ${err}`);
-  },
-
+    );
   
-  
-  );
 }
 
 
 },[])
 
-function playArray(index,ele,array,listener){
-  ele.removeEventListener(listener||0);
-  ele.src = array[index];
-  ele.load();
-  ele.play();
-  index++;
-  if(index>=array.length){
-      index=0;
-  }
-  listener = ele.addEventListener('ended',function(){
-      playArray(index,ele,array,listener);
-  },false);
-}
 
+useEffect(()=>{
+  if(window.navigator.onLine){
+  const doc = fire.firestore().collection('live').doc("on");
+
+
+ doc.onSnapshot(
+  (docSnapshot) => {
+
+        console.log(docSnapshot.exists)
+        console.log(docSnapshot.data().link)
+  }, err => {
+    console.log(`Encountered error: ${err}`);
+  },
+
+  );
+}
+},[])
 
 const[index,setIndex] = useState(0);
 const myCallback = () => {
   console.log('Video has ended')
+
   setIndex(index+1);
-  console.log(index)
-  console.log(videos.length)
-  if(index+1 == videos.length){
+
+  if(index+1 >= videos.length){
     setIndex(0);
     setSrc(videos[0]);
 
+
   }else{
     setSrc(videos[index+1]);
+
   }
   //ref.current.parentElement.play()
 }
