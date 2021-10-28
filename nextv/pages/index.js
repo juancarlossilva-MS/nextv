@@ -65,7 +65,7 @@ useEffect(()=>{
      <a>teste</a>
      <TextField id="outlined-basic" onChange={e => setLink(e.target.value) } value={link}  fullWidth label="Link Live" variant="standard" />
       {videos.map(x => {
-          return(<a>{x}</a>)
+          return(<a key={x}>{x}</a>)
       })}
      </div>
   )
