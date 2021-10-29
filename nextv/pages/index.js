@@ -3,8 +3,7 @@ import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 import fire from "../config/fire-config"
 import { useEffect, useRef, useState } from 'react';
-import TextField from '@mui/material/TextField';
-import { Button, InputLabel } from '@mui/material';
+import {List, TextField,Button, InputLabel, ListItem } from '@mui/material';
 
 export default function Home() {
   
@@ -75,42 +74,60 @@ useEffect(()=>{
 function salvarLive(){
   console.log(link)
 }
+const flexContainer = {
+  flexDirection: 'row',
+  padding: 0,
+  
+};
+const LinkLive = () =>{
+  return(<div >
+          <InputLabel >Link da Transmissao ao vivo</InputLabel>
+          <InputLabel>obs: deixe vazio para offline</InputLabel>
+        
+        <TextField id="outlined-basic"  onChange={e => setLink(e.target.value) } value={link}  fullWidth label="Link Live" variant="standard" />
+        <Button onClick={salvarLive}>Salvar</Button>
+     </div>)
+}
+
+const VideosLista = () =>{
+  return(<div>
+    <List style={flexContainer}>
+    {videos.map(x => {
+      
+      return(
+       
+        <ListItem key={x.id}>
+            
+                      <video key={x.id} width={300} controls height={300}><source type="video/mp4" src={"https://btgnews.com.br/videos/"+x.id+"?to=crop&r=256"} /> </video>
+                      <ul>
+                      {locais.map(l => {
+                        return(
+                                <li key={l}>{l} - {x.data()[l] !== undefined && "SELECTED"  }</li>
+                                )
+                                
+                              })}
+                      </ul>
+                     
+
+                      
+          </ListItem>)
+        })}
+        </List>
+   </div>)
+}
 
   return (
     <div className={styles.container}>
-      <body>
-      <InputLabel >Link da Transmissao ao vivo</InputLabel>
-      <InputLabel>obs: deixe vazio para offline</InputLabel>
-     <TextField id="outlined-basic"  onChange={e => setLink(e.target.value) } value={link}  fullWidth label="Link Live" variant="standard" />
-     <Button onClick={salvarLive}>Salvar</Button>
-     <div>
-        <ul>
-      {videos.map(x => {
-        
-        return(
-         
-          <li>
+      <div style={{height: `200px`,
+            overflow: "scroll",}}>
 
-                        <video key={x.id} width={300} controls autoPlay height={300}><source type="video/mp4" src={"https://btgnews.com.br/videos/"+x.id+"?to=crop&r=256"} /> </video>
-                        <ul>
-                        {locais.map(l => {
-                          return(
-                                  <li>{l} - {x.data()[l] !== undefined && "SELECTED"  }</li>
-                                  )
-                                  
-                                })}
-                        </ul>
-                       
+         <LinkLive/>
+      </div>
+      <div>
 
-                        
-            </li>)
-            
-            
-            
-          })}
-          </ul>
-     </div>
-     </body>
+         <VideosLista/>
+      </div>
+     
      </div>
   )
 }
