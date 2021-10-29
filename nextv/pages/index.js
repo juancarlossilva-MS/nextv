@@ -108,21 +108,21 @@ const flexContainer = {
               {videos.map(x => {
                 
                 return(
-                 <Grid item x={2} >
+                 <Grid item x={2} key={x.id} >
                   <ListItem key={x.id}>
                       
                                 <video key={x.id} width={300} controls height={300}><source type="video/mp4" src={"https://btgnews.com.br/videos/"+x.id+"?to=crop&r=256"} /> </video>
-                                <FormGroup>
+                                <FormGroup key={x.id}>
                                 {locais.map(l => {
                                   
                                      if( x.data()[l] !== undefined){
                                         return(
-                                          <FormControlLabel control={<Checkbox   defaultChecked  />} label={l} />
+                                          <FormControlLabel key={l} control={<Checkbox   defaultChecked  />} label={l} />
                                       )
                                      }else{
                                             return(
                                                                                 
-                                              <FormControlLabel control={<Checkbox  />} label={l} />
+                                              <FormControlLabel key={l}  control={<Checkbox  />} label={l} />
                                               
                                                 )
                                      }
