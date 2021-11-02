@@ -4,6 +4,7 @@ import styles from '../styles/Home.module.css'
 import fire from "../config/fire-config"
 import { useEffect, useRef, useState } from 'react';
 import {List, FormGroup,Grid,FormControlLabel,Checkbox, TextField,Button, InputLabel, ListItem, Typography } from '@mui/material';
+import ReactDOM from 'react-dom';
 
 export default function Home() {
   
@@ -147,9 +148,28 @@ function selecVideoLocal(event){
 }
 const videoref = useRef()
 function addVideo(){
-  console.log(videoref.current)
-  console.log(videoref.current.files[0])
-  console.log(videoref.current.files[0].blob())
+  //criar um nome aleatorio pro video e enviar junto e buscar la $_post[name]
+  let data = new FormData();
+  data.append('file', videoref.current.files[0]);
+  let resul = fetch("https://btgnews.tv.br/videos/upload.php",{
+      method: "POST",
+      body: data,
+      responseText: "true",
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      header:{
+        "access-control-allow-origin":"*",
+        "Content-Type": "multipart/form-data; boundary=—-WebKitFormBoundaryfgtsKTYLsT7PNUVD"
+      }
+      })
+  resul.then(x=>
+   {console.log(x),  
+    x.json().then((responseData) => {
+      console.log(responseData);
+    })}
+  )
+
+
 }
 
   return (
