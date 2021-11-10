@@ -25,7 +25,7 @@ useEffect(()=>{
 
     docSnapshot.forEach(async x=>{
         
-        const url = "https://btgnews.com.br/videos/"+x.id+"?to=crop&r=256";
+        const url = "https://btgnews.tv.br/videos/"+x.id+"?to=crop&r=256";
         arrayVideos.push(x);
        
     })
@@ -78,12 +78,12 @@ function salvarLive(){
   
 }
 function salvarVideos(){
-  videosL.map(video=>{
-    Object.keys(video).map(key=>{
+   videosL.map( video=>{
+    Object.keys(video).map( key=>{
       const local = video[key]
-      fire.firestore().collection("listvideos").doc(key).update({[local]:""})
+       fire.firestore().collection("listvideos").doc(key).update({[local]:""})
     })
-})
+  })
 }
 const flexContainer = {
   flexDirection: 'row',
@@ -149,8 +149,11 @@ function selecVideoLocal(event){
 const videoref = useRef()
 function addVideo(){
   //criar um nome aleatorio pro video e enviar junto e buscar la $_post[name]
+  const crypto = require("crypto");
+  const videoName = crypto.randomBytes(12).toString("hex")
   let data = new FormData();
   data.append('file', videoref.current.files[0]);
+  data.append('name', videoName);
   let resul = fetch("https://btgnews.tv.br/videos/upload.php",{
       method: "POST",
       body: data,
@@ -162,15 +165,27 @@ function addVideo(){
         "Content-Type": "multipart/form-data; boundary=—-WebKitFormBoundaryfgtsKTYLsT7PNUVD"
       }
       })
-  resul.then(x=>
-   {console.log(x),  
-    x.json().then((responseData) => {
-      console.log(responseData);
-    })}
+  resul.then(async x=>
+   { 
+
+    if(x.ok){
+      await fire.firestore().collection("listvideos").doc(videoName).set({});
+        window.location.reload()
+      x.json().then((responseData) => {
+        console.log(responseData);
+        
+      })}
+    }
   )
 
 
 }
+
+function deletarVideo(e){
+  console.log(e.target.id)
+}
+
+
 
   return (
     <div style={{padding:30}}>
@@ -218,9 +233,9 @@ function addVideo(){
                 
                 return(
                  <Grid item x={2} key={x.id} >
+                      <Button  variant="contained" id={x.id} onClick={e=>deletarVideo(e)} color="error">Deletar</Button>
                   <ListItem >
-                      
-                        <video width={250} controls height={250}><source type="video/mp4" src={"https://btgnews.com.br/videos/"+x.id+"?to=crop&r=256"} /> </video>
+                        <video width={250} controls height={250}><source type="video/mp4" src={"https://btgnews.tv.br/videos/"+x.id+"?to=crop&r=256"} /> </video>
                         <FormGroup>
                         {locais.map(l => {
                           
