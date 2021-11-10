@@ -5,9 +5,51 @@ import fire from "../config/fire-config"
 import { useEffect, useRef, useState } from 'react';
 import {List, FormGroup,Grid,FormControlLabel,Checkbox, TextField,Button, InputLabel, ListItem, Typography } from '@mui/material';
 import ReactDOM from 'react-dom';
+import Modal from '@mui/material/Modal';
+import Box from '@mui/material/Box';
+
+const style = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: 4,
+};
+
 
 export default function Home() {
   
+  
+  const [open, setOpen] = useState(false);
+  const [id, setID] = useState();
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+   function BasicModal() {
+    return (
+      <div>
+        <Modal
+          open={open}
+          onClose={handleClose}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Box sx={style}>
+            <Typography id="modal-modal-title" variant="h6" component="h2">
+             Certeza que deseja deletar? {id}
+            </Typography>
+            <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+              Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
+            </Typography>
+          </Box>
+        </Modal>
+      </div>
+    );
+  }
   
 
 
@@ -182,15 +224,20 @@ function addVideo(){
 }
 
 function deletarVideo(e){
-  console.log(e.target.id)
+  setID(e.target.id)
+  handleOpen()
 }
 
-
+const bordas = {
+  borderWidth: "6px",borderStyle: "dashed",borderColor: "#f00"
+}
+const margem = {marginLeft:10,padding:10,borderWidth: "6px",borderStyle: "dashed",borderColor: "#f00"}
 
   return (
     <div style={{padding:30}}>
       <Grid container spacing={5}>
             <Grid item xs={5} >
+              <div style={margem}>
                 <InputLabel >Link da Transmissao ao vivo</InputLabel>
                 <InputLabel>obs: deixe vazio para offline</InputLabel>
               
@@ -198,42 +245,49 @@ function deletarVideo(e){
               <div style={{paddingTop:10}}>
                   <Button   variant="contained" color="success" onClick={salvarLive}>Salvar Live</Button>
               </div> 
+              </div> 
           </Grid>
-          <Grid item xs={7}>
-            <Typography variant="h6"> Locais de tranmissão</Typography>
-          <FormGroup style={{maxHeight:250}}>
-                  {locais.map(l => {
-                    
-                        
-                    return(
-                                                                  
-                      <FormControlLabel key={l}  control={<Checkbox name={l} onChange={selecLocal}  />} label={l} />
-                                
-                      )
-              })}
-          <div>
-          <TextField variant="standard" fullWidth onChange={e=>setNovoL(e.target.value)} value={novoL} label="Digite aqui o nome do Novo Local"></TextField><br/>
-          <Button   variant="contained" color="success" onClick={cadastrarLocal}>Cadastrar novo Local</Button>
-          </div>
-          {checks.length > 0 &&
+          <Grid item xs={7} >
+            <div style={margem}>
+                <Typography variant="h6"> Locais de tranmissão</Typography>
+                        <FormGroup style={{maxHeight:250}}>
+                                {locais.map(l => {
+                                  
+                                      
+                                  return(
+                                                                                
+                                    <FormControlLabel key={l}  control={<Checkbox name={l} onChange={selecLocal}  />} label={l} />
+                                              
+                                    )
+                            })}
+                        <div>
+                        <TextField variant="standard" fullWidth onChange={e=>setNovoL(e.target.value)} value={novoL} label="Digite aqui o nome do Novo Local"></TextField><br/>
+                        <Button   variant="contained" color="success" onClick={cadastrarLocal}>Cadastrar novo Local</Button>
+                        </div>
+                        {checks.length > 0 &&
 
-                <Button   variant="contained" color="error" onClick={deletarLocais}>Deletar locais selecionados</Button>
-          }
+                              <Button   variant="contained" color="error" onClick={deletarLocais}>Deletar locais selecionados</Button>
+                        }
          
                         </FormGroup>
+              </div>
           </Grid>
     </Grid>
-       
+    <Grid item xs={6} style={{marginTop:20}}>
+       <div style={margem}>
           <Typography variant="h6">Lista de Videos</Typography>
           <input type="file" ref={videoref}/>
-          <Button onClick={addVideo}>Adicionar novo video!</Button>
+          <Button onClick={addVideo} variant="contained" color="warning">Adicionar novo video!</Button>
+        </div>
+      </Grid>
     <Grid container style={{marginTop:30}}>
         
               {videos.map(x => {
                 
                 return(
-                 <Grid item x={2} key={x.id} >
+                 <Grid item x={2} key={x.id} style={margem} >
                       <Button  variant="contained" id={x.id} onClick={e=>deletarVideo(e)} color="error">Deletar</Button>
+
                   <ListItem >
                         <video width={250} controls height={250}><source type="video/mp4" src={"https://btgnews.tv.br/videos/"+x.id+"?to=crop&r=256"} /> </video>
                         <FormGroup>
@@ -267,7 +321,7 @@ function deletarVideo(e){
       <Button   variant="contained" color="success" onClick={salvarVideos}>Salvar Videos</Button>
 
       </div>             
-     
+      <BasicModal />
      </div>
   )
 }
