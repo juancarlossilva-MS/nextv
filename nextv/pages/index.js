@@ -3,7 +3,7 @@ import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 import fire from "../config/fire-config"
 import { useEffect, useRef, useState } from 'react';
-import {List, FormGroup,Grid,FormControlLabel,Checkbox, TextField,Button, InputLabel, ListItem, Typography } from '@mui/material';
+import {List,Backdrop ,CircularProgress, FormGroup,Grid,FormControlLabel,Checkbox, TextField,Button, InputLabel, ListItem, Typography } from '@mui/material';
 import ReactDOM from 'react-dom';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
@@ -25,8 +25,10 @@ export default function Home() {
   
   
   const [open, setOpen] = useState(false);
+  const [openBack, setOpenBack] = useState(false);
   const [id, setID] = useState();
   const handleOpen = () => setOpen(true);
+  const handleOpenBack = () => {setOpen(false); setOpenBack(true); }
   const handleClose = () => setOpen(false);
 
    function BasicModal() {
@@ -40,10 +42,11 @@ export default function Home() {
         >
           <Box sx={style}>
             <Typography id="modal-modal-title" variant="h6" component="h2">
-             Certeza que deseja deletar? {id}
+             Certeza que deseja deletar o video ID: {id} ?
             </Typography>
             <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-              Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
+             <Button variant="contained" color="success" onClick={handleOpenBack}>Confirmar</Button>
+             <Button variant="contained" color="error" onClick={handleClose}>Cancelar</Button>
             </Typography>
           </Box>
         </Modal>
@@ -322,6 +325,12 @@ const margem = {marginLeft:10,padding:10,borderWidth: "6px",borderStyle: "dashed
 
       </div>             
       <BasicModal />
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={openBack}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
      </div>
   )
 }
